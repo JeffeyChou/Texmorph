@@ -1,0 +1,40 @@
+{
+  "name": "@texmorph/core",
+  "version": "0.0.0",
+  "description": "Pure TypeScript formula-morph planning: tokens, matching, plans and seekable sampling.",
+  "license": "MIT",
+  "author": "Jiefeng Zhou",
+  "homepage": "https://jeffeychou.github.io/Texmorph/api/core",
+  "bugs": {
+    "url": "https://github.com/JeffeyChou/Texmorph/issues"
+  },
+  "keywords": [
+    "math",
+    "latex",
+    "animation",
+    "morph",
+    "formula"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JeffeyChou/Texmorph.git",
+    "directory": "packages/core"
+  }
+}

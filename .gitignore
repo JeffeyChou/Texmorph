@@ -1,0 +1,41 @@
+# Dependencies and build output
+node_modules/
+dist/
+temp/
+coverage/
+*.tsbuildinfo
+.DS_Store
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# Development-only content. It lives on the `dev` branch; ignoring it here keeps
+# those files from showing up as untracked when `main` is checked out.
+/.github/workflows/ci.yml
+/.github/workflows/nightly.yml
+/.vitest/
+/spikes/
+/fixtures/
+/tests/
+/scripts/
+/examples/
+/site/
+/types/*
+!/types/katex.d.ts
+/packages/*/test/
+/packages/*/etc/
+/packages/*/api-extractor.json
+/docs/adr/
+/docs/review/
+/docs/reports/
+/docs/PLAN.md
+/docs/PROGRESS.md
+/docs/HANDOFF.md
+/docs/STABILITY.md
+/docs/security.md
+/vitest.config.ts
+/eslint.config.js
+/tsconfig.json
+/.dependency-cruiser.cjs
+/.size-limit.json
+test-results/
+playwright-report/

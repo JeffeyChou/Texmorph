@@ -1,0 +1,59 @@
+{
+  "name": "@texmorph/remotion",
+  "version": "0.0.0",
+  "description": "Remotion component for texmorph: frame-accurate formula morphs.",
+  "license": "MIT",
+  "author": "Jiefeng Zhou",
+  "homepage": "https://jeffeychou.github.io/Texmorph/api/remotion",
+  "bugs": {
+    "url": "https://github.com/JeffeyChou/Texmorph/issues"
+  },
+  "keywords": [
+    "remotion",
+    "react",
+    "video",
+    "math",
+    "latex",
+    "animation",
+    "morph"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JeffeyChou/Texmorph.git",
+    "directory": "packages/remotion"
+  },
+  "dependencies": {
+    "@texmorph/dom": "workspace:*"
+  },
+  "peerDependencies": {
+    "remotion": "^4.0.0",
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@texmorph/katex": "workspace:*",
+    "katex": "0.19.0",
+    "remotion": "4.0.533",
+    "@remotion/player": "4.0.533",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19"
+  }
+}

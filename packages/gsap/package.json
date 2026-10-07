@@ -1,0 +1,51 @@
+{
+  "name": "@texmorph/gsap",
+  "version": "0.0.0",
+  "description": "GSAP timeline bridge for texmorph morphs.",
+  "license": "MIT",
+  "author": "Jiefeng Zhou",
+  "homepage": "https://jeffeychou.github.io/Texmorph/api/gsap",
+  "bugs": {
+    "url": "https://github.com/JeffeyChou/Texmorph/issues"
+  },
+  "keywords": [
+    "gsap",
+    "math",
+    "latex",
+    "animation",
+    "morph"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JeffeyChou/Texmorph.git",
+    "directory": "packages/gsap"
+  },
+  "dependencies": {
+    "@texmorph/dom": "workspace:*"
+  },
+  "peerDependencies": {
+    "gsap": "^3.13.0"
+  },
+  "devDependencies": {
+    "gsap": "3.15.0",
+    "@texmorph/katex": "workspace:*",
+    "katex": "0.19.0"
+  }
+}

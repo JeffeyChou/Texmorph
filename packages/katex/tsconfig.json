@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [],
+    "rootDir": "src",
+    "paths": {
+      "katex": [
+        "../../types/katex.d.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "../../types"
+  ]
+}
