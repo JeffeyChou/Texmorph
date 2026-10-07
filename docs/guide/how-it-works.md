@@ -15,7 +15,7 @@ All DOM measurement happens here. If something goes wrong, see [Errors and diagn
 
 ## 2. Render
 
-`morph.render(t)` samples the plan at progress `t ∈ [0, 1]` and writes only `transform`, `opacity` and `color` to lightweight copies of the symbols ("ghosts"). It never reads layout, so:
+`morph.render(t)` samples the plan at progress `t ∈ [0, 1]` and writes only position, `transform`, `opacity` and `color` to lightweight copies of the symbols ("ghosts"). It never reads layout, so:
 
 - any `t` can be rendered at any time, in any order;
 - rendering the same `t` twice produces identical pixels;

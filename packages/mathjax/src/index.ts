@@ -11,7 +11,7 @@ import {
 } from '@texmorph/dom';
 import { ATTR } from './annotate.ts';
 import { createEngine, loadFontRange, MATHJAX_VERSION, setFontLoader, type Engine } from './engine.ts';
-import { formulaSvg, hrefOf, registries, safeMeasure, setHref, SVGNS, XLINK } from './snapshot.ts';
+import { alignToPixels, formulaSvg, hrefOf, registries, safeMeasure, setHref, SVGNS, XLINK } from './snapshot.ts';
 
 export interface MathJaxRendererOptions {
   /** TeX packages. Default: base, ams, newcommand, color, cancel, boldsymbol. Others need their configuration module from `@mathjax/src` imported first. */
@@ -180,6 +180,9 @@ export function mathjaxRenderer(options: MathJaxRendererOptions = {}): FormulaRe
       root.setAttribute('height', String(Math.max(bounds.y + bounds.height, 1)));
       root.style.cssText = 'position:absolute;left:0;top:0;overflow:visible;pointer-events:none';
       stage.append(root);
+      alignToPixels(root, stage);
+      const dx = -Number.parseFloat(root.style.left);
+      const dy = -Number.parseFloat(root.style.top);
       return {
         root,
         add(ghost) {
@@ -188,7 +191,7 @@ export function mathjaxRenderer(options: MathJaxRendererOptions = {}): FormulaRe
         place(ghost, frame, track) {
           const native = frame.layer === 'source' ? track.from.box : track.to.box;
           const [ox, oy] = track.origin === 'center' ? [native.width / 2, native.height / 2] : [0, 0];
-          ghost.setAttribute('transform', `translate(${frame.tx + ox} ${frame.ty + oy}) scale(${frame.sx} ${frame.sy}) translate(${-ox} ${-oy})`);
+          ghost.setAttribute('transform', `translate(${frame.tx + ox + dx} ${frame.ty + oy + dy}) scale(${frame.sx} ${frame.sy}) translate(${-ox} ${-oy})`);
           ghost.setAttribute('opacity', String(frame.opacity));
           if (frame.color) {
             const color = css(frame.color);

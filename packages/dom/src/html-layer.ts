@@ -7,7 +7,14 @@ function css(color: RGBA): string {
 
 const sized = new WeakMap<HTMLElement, string>();
 
-/** Positions an absolutely positioned HTML ghost. Its native size and origin are written once; frames only write transform, opacity and color. */
+// Below this size change (CSS px) a ghost is drawn unscaled, exactly like the real token.
+const STILL = 0.05;
+
+/**
+ * Positions an absolutely positioned HTML ghost. Its native size and origin are written once; frames write
+ * left/top, transform (scale only), opacity and color. Translating with left/top rather than a transform keeps
+ * text on the same pixel grid as the real formula, so the switch between them at t = 0 and t = 1 is invisible.
+ */
 export function placeHtmlGhost(ghost: HTMLElement, frame: GhostFrame, track: Track): void {
   const native = frame.layer === 'source' ? track.from.box : track.to.box;
   const style = ghost.style;
@@ -18,7 +25,10 @@ export function placeHtmlGhost(ghost: HTMLElement, frame: GhostFrame, track: Tra
     style.transformOrigin = track.origin === 'center' ? '50% 50%' : '0 0';
     sized.set(ghost, key);
   }
-  style.transform = `translate(${frame.tx}px, ${frame.ty}px) scale(${frame.sx}, ${frame.sy})`;
+  style.left = `${frame.tx}px`;
+  style.top = `${frame.ty}px`;
+  const still = Math.abs(frame.sx - 1) * native.width < STILL && Math.abs(frame.sy - 1) * native.height < STILL;
+  style.transform = still ? 'none' : `scale(${frame.sx}, ${frame.sy})`;
   style.opacity = String(frame.opacity);
   if (frame.color) style.color = css(frame.color);
 }

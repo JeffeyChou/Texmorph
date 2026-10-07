@@ -22,6 +22,10 @@ const morph = await createMorph(
 );
 ```
 
+<ClientOnly>
+  <MorphDemo :steps="['\\int_0^1 x\\,dx', '\\left[\\frac{x^2}{2}\\right]_0^1']" :renderers="['mathjax']" />
+</ClientOnly>
+
 The renderer imports MathJax modules directly: TeX input, SVG output with a per-formula font cache. It does not use MathJax's component loader, a CDN or a global `MathJax` object.
 
 ## Configuring the renderer

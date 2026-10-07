@@ -14,6 +14,12 @@ Accepted values (`EasingSpec`):
 - CSS-style aliases: `ease`, `ease-in`, `ease-out`, `ease-in-out`, and `spring`.
 - Objects: `{ type: 'cubic-bezier', x1, y1, x2, y2 }`, `{ type: 'steps', count, position? }`, `{ type: 'spring', stiffness?, damping?, mass? }`.
 
+Compare a few of them:
+
+<ClientOnly>
+  <MorphDemo :steps="['ax^2 + bx + c = 0', 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}']" :easings="['easeInOutCubic', 'linear', 'easeOutCubic', 'easeInOutExpo', 'easeOutElastic', 'easeOutBounce', 'spring', 'ease-in-out']" />
+</ClientOnly>
+
 To accept CSS-like strings from configuration, use `parseEasing`:
 
 ```ts

@@ -22,4 +22,10 @@
 </script>
 ```
 
+The result:
+
+<ClientOnly>
+  <MorphDemo :steps="['a^2 + b^2 = c^2', 'c^2 = a^2 + b^2']" :renderers="['katex']" />
+</ClientOnly>
+
 The global exposes `createMorph`, `katexRenderer`, `renderFormula`, `MorphPrepareError`, `TexMorphLifecycleError`, `parseEasing`, `resolveEasing`, `reversePlan` and `sampleMorph`. Pin a version in production URLs.

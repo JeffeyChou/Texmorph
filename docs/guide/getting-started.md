@@ -39,6 +39,12 @@ morph.render(1);    // shows the target formula
 
 `createMorph` renders both formulas, measures them, matches their symbols and returns a `MathMorph`. Nothing moves until you call `render(t)`.
 
+Here is that morph. The slider calls `render(t)` directly:
+
+<ClientOnly>
+  <MorphDemo :steps="['x^2 + y^2 = z^2', 'x^2 = z^2 - y^2']" />
+</ClientOnly>
+
 ## Play it
 
 texmorph has no built-in clock; drive `render` from whatever owns time in your app. A minimal player:

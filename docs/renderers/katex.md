@@ -25,6 +25,10 @@ const morph = await createMorph(
 );
 ```
 
+<ClientOnly>
+  <MorphDemo :steps="['\\frac{a}{b} + c', 'c + \\frac{a}{b}']" :renderers="['katex']" />
+</ClientOnly>
+
 Passing `katex` is recommended. If it is omitted, `createMorph` loads it with a dynamic `import('katex')`, which your bundler resolves.
 
 ## Reusing a renderer

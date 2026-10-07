@@ -24,3 +24,16 @@ features:
   - title: Fits your stack
     details: Adapters for GSAP timelines, a <tex-morph> Web Component and Remotion videos, plus a script-tag build.
 ---
+
+<div class="vp-doc" style="max-width: 960px; margin: 48px auto 0; padding: 0 24px">
+
+## Try it
+
+The example from [Getting started](/guide/getting-started). Press play, drag the slider, or switch the renderer.
+
+
+<ClientOnly>
+  <MorphDemo :steps="['x^2 + y^2 = z^2', 'x^2 = z^2 - y^2']" />
+</ClientOnly>
+
+</div>

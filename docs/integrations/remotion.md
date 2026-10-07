@@ -29,6 +29,12 @@ export const QuadraticFormula = () => (
 );
 ```
 
+The same transition, scrubbed here instead of by Remotion's frame counter:
+
+<ClientOnly>
+  <MorphDemo :steps="['ax^2 + bx + c = 0', 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}']" />
+</ClientOnly>
+
 ## Props
 
 | Prop | Description |

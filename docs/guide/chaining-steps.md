@@ -2,6 +2,12 @@
 
 Derivations usually have several steps: `2x + 3 = 7 → 2x = 4 → x = 2`. Reuse the formula left in the container by one morph as the start of the next, so nothing is rendered twice.
 
+The steps used on this page. **Play** advances one step and **Back** plays the last transition in reverse:
+
+<ClientOnly>
+  <MorphDemo :steps="['2x + 3 = 7', '2x = 7 - 3', '2x = 4', 'x = 2']" />
+</ClientOnly>
+
 ## Forward
 
 ```ts

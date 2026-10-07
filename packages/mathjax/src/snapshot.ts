@@ -107,6 +107,21 @@ function ancestorScale(root: HTMLElement): { sx: number; sy: number } {
   return { sx: Number.isFinite(sx) && sx > 0 ? sx : 1, sy: Number.isFinite(sy) && sy > 0 ? sy : 1 };
 }
 
+/**
+ * Moves an SVG root (by less than half a pixel) onto whole screen pixels. Chromium snaps an <svg> box to the
+ * pixel grid but not transformed ghosts; on a whole pixel no snapping happens, so both draw at the same place.
+ */
+export function alignToPixels(svg: SVGSVGElement, scaleOf: HTMLElement): void {
+  const { sx, sy } = ancestorScale(scaleOf);
+  const style = svg.style;
+  if (style.position === '' || style.position === 'static') style.position = 'relative';
+  const r = svg.getBoundingClientRect();
+  const x = r.left - (Number.parseFloat(style.left) || 0) * sx;
+  const y = r.top - (Number.parseFloat(style.top) || 0) * sy;
+  style.left = `${(Math.round(x) - x) / sx}px`;
+  style.top = `${(Math.round(y) - y) / sy}px`;
+}
+
 function screenToRoot(svg: SVGSVGElement): DOMMatrix {
   const m = svg.getScreenCTM();
   if (!m) throw new SnapshotError('layout/no-size', 'formula svg is not rendered');
@@ -180,6 +195,7 @@ export function measure(root: HTMLElement, renderer: { name: string; version: st
   }
   const rootRect = root.getBoundingClientRect();
   if (!rootRect.width || !rootRect.height) throw new SnapshotError('layout/zero-box', 'formula root has no size');
+  alignToPixels(svg, root);
   const { sx, sy } = ancestorScale(root);
   const inv = screenToRoot(svg);
   const ctm = svg.getScreenCTM() as DOMMatrix;
