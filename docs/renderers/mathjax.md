@@ -62,3 +62,4 @@ The base font tables load with the renderer. About 40 additional ranges (accente
 - **Token order** follows MathML (numerator before denominator, then base, subscript, superscript). Ink-less characters are skipped. `morphMap` indices therefore differ from KaTeX's.
 - **Stylesheet**: the `mjx-container` stylesheet is injected into `document.head` on first render. For shadow roots, use `renderer.stylesheet()`.
 - **Multiple instances**: element ids are namespaced per formula, so any number of formulas and morphs can share a page.
+- **Outline morphing**: matched glyphs whose shapes differ morph their outlines ([details](/guide/how-it-works#outline-morphing)). The renderer imports `flubber` on first use; glyphs drawn with a system font (CJK, emoji) stretch and crossfade instead.

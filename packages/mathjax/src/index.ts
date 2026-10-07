@@ -11,6 +11,8 @@ import {
 } from '@texmorph/dom';
 import { ATTR } from './annotate.ts';
 import { createEngine, loadFontRange, MATHJAX_VERSION, setFontLoader, type Engine } from './engine.ts';
+import { watchFrameRate } from './frame-rate.ts';
+import { createShapeGhost, loadShapes } from './shape.ts';
 import { alignToPixels, formulaSvg, hrefOf, registries, safeMeasure, setHref, SVGNS, XLINK } from './snapshot.ts';
 
 export interface MathJaxRendererOptions {
@@ -258,6 +260,13 @@ export function mathjaxRenderer(options: MathJaxRendererOptions = {}): FormulaRe
     stylesheet() {
       return engine.styleSheet();
     },
+    loadShapes(signal) {
+      return abortable(loadShapes(), signal);
+    },
+    createShapeGhost(source, target, track) {
+      return createShapeGhost(source, target, { from: track.from.box, to: track.to.box });
+    },
+    watchFrameRate,
   };
 }
 
@@ -275,4 +284,4 @@ export async function createMorph(
 }
 
 export { MorphPrepareError, renderFormula, TexMorphLifecycleError } from '@texmorph/dom';
-export type { FormulaInput, FormulaRenderer, GhostLayer, LatexState, MathMorph, MathMorphOptions, RenderedFormula } from '@texmorph/dom';
+export type { FormulaInput, FormulaRenderer, GhostLayer, LatexState, MathMorph, MathMorphOptions, RenderedFormula, ShapeGhost, ShapeMode, FrameRateWatch } from '@texmorph/dom';

@@ -10,7 +10,7 @@ import {
   type Point,
   type Track,
 } from '@texmorph/core';
-import type { FormulaInput, FormulaRenderer, GhostLayer, LatexState, MathMorph, MathMorphOptions, RenderedFormula } from './types.ts';
+import type { FormulaInput, FormulaRenderer, FrameRateWatch, GhostLayer, LatexState, MathMorph, MathMorphOptions, RenderedFormula, ShapeGhost } from './types.ts';
 
 export class TexMorphLifecycleError extends Error {
   override name = 'TexMorphLifecycleError';
@@ -27,6 +27,10 @@ export class MorphPrepareError extends Error {
 }
 
 export const DEFAULT_DURATION = 800;
+const DEFAULT_MIN_FPS = 50;
+
+/** Set once `shapes: 'auto'` has fallen back on this page; later auto morphs start without outline morphing. */
+let slowPage = false;
 
 type Side = 'source' | 'target';
 
@@ -40,6 +44,7 @@ interface Built {
   plan: MorphPlan;
   layer: GhostLayer | null;
   ghosts: Map<string, Element>;
+  shapes: Map<string, ShapeGhost>;
   masks: Record<Side, (() => void) | null>;
 }
 
@@ -158,6 +163,8 @@ class Morph<Opts> implements MathMorph {
   private readonly initialMinHeight: string;
   private readonly initialMinWidth: string;
   private settled: Side | null = null;
+  private shapeActive: boolean;
+  private watch: FrameRateWatch | null = null;
 
   constructor(
     private readonly renderer: FormulaRenderer<Opts>,
@@ -166,8 +173,11 @@ class Morph<Opts> implements MathMorph {
     private readonly sides: Record<Side, Resolved>,
     private readonly options: MathMorphOptions<Opts>,
     extra: readonly MorphDiagnostic[],
+    shapesLoaded: boolean,
   ) {
     this.duration = options.duration ?? DEFAULT_DURATION;
+    const mode = options.shapes ?? 'auto';
+    this.shapeActive = shapesLoaded && (mode === 'always' || (mode === 'auto' && !slowPage));
     this.prepDiagnostics.push(...extra);
     this.initialMinHeight = stage.style.minHeight;
     this.initialMinWidth = stage.style.minWidth;
@@ -187,6 +197,10 @@ class Morph<Opts> implements MathMorph {
 
   get diagnostics(): readonly MorphDiagnostic[] {
     return [...this.diagnosticsSoFar(), ...this.built.plan.diagnostics];
+  }
+
+  get shapes(): boolean {
+    return this.built.shapes.size > 0;
   }
 
   get target(): RenderedFormula {
@@ -233,6 +247,7 @@ class Morph<Opts> implements MathMorph {
       plan: createCrossfadePlan(localBox(src.rendered.root, this.stage), localBox(tgt.rendered.root, this.stage), this.options.easing ? { easing: this.options.easing } : {}),
       layer: null,
       ghosts: new Map(),
+      shapes: new Map(),
       masks: { source: null, target: null },
     });
     if (src.failed || tgt.failed || hasErrors(src.rendered) || hasErrors(tgt.rendered)) {
@@ -259,8 +274,9 @@ class Morph<Opts> implements MathMorph {
     const layer = this.renderer.createGhostLayer(this.stage, plan.stage);
     try {
       const ghosts = this.buildGhosts(plan, layer);
-      this.placeAll(plan, layer, ghosts, sampleMorph(plan, 0.5));
-      return { plan, layer, ghosts, masks: { source: null, target: null } };
+      const shapes = this.shapeActive ? this.buildShapes(plan, layer, ghosts) : new Map<string, ShapeGhost>();
+      this.placeAll(plan, layer, ghosts, shapes, sampleMorph(plan, 0.5));
+      return { plan, layer, ghosts, shapes, masks: { source: null, target: null } };
     } catch (error) {
       layer.dispose();
       layer.root.remove();
@@ -293,13 +309,82 @@ class Morph<Opts> implements MathMorph {
     return ghosts;
   }
 
-  private placeAll(plan: MorphPlan, layer: GhostLayer, ghosts: Map<string, Element>, frame: ReturnType<typeof sampleMorph>): void {
+  /** Replaces the two crossfading ghosts of each matched track whose glyphs differ with one outline morph. */
+  private buildShapes(plan: MorphPlan, layer: GhostLayer, ghosts: Map<string, Element>): Map<string, ShapeGhost> {
+    const shapes = new Map<string, ShapeGhost>();
+    const create = this.renderer.createShapeGhost?.bind(this.renderer);
+    if (!create) return shapes;
+    for (const track of plan.tracks) {
+      if (track.kind !== 'matched' || track.appearance !== 'crossfade') continue;
+      const source = ghosts.get(`${track.id}:source`);
+      const target = ghosts.get(`${track.id}:target`);
+      const shape = source && target ? create(source, target, track) : null;
+      if (!shape || !source || !target) continue;
+      shape.el.setAttribute('aria-hidden', 'true');
+      shape.el.setAttribute('data-texmorph-shape', track.id);
+      layer.add(shape.el);
+      setShown(source, false);
+      setShown(target, false);
+      shapes.set(track.id, shape);
+    }
+    return shapes;
+  }
+
+  private placeAll(
+    plan: MorphPlan,
+    layer: GhostLayer,
+    ghosts: Map<string, Element>,
+    shapes: Map<string, ShapeGhost>,
+    frame: ReturnType<typeof sampleMorph>,
+  ): void {
     const tracks = new Map(plan.tracks.map((tr) => [tr.id, tr]));
     for (const g of frame.ghosts) {
-      const ghost = ghosts.get(`${g.trackId}:${g.layer}`);
       const track = tracks.get(g.trackId);
-      if (ghost && track) layer.place(ghost, g, track);
+      if (!track) continue;
+      const shape = shapes.get(g.trackId);
+      if (shape) {
+        if (g.layer !== 'source') continue;
+        shape.draw(g.mix ?? 1 - g.opacity);
+        layer.place(shape.el, { ...g, sx: 1, sy: 1, opacity: 1 }, track);
+        continue;
+      }
+      const ghost = ghosts.get(`${g.trackId}:${g.layer}`);
+      if (ghost) layer.place(ghost, g, track);
     }
+  }
+
+  /** Lets the renderer sample the frame rate while the morph is between its endpoints. */
+  private watchFrameRate(): void {
+    if (!this.watch) {
+      const minFps = this.options.minFps ?? DEFAULT_MIN_FPS;
+      this.watch = this.renderer.watchFrameRate?.(minFps, (fps) => {
+        if (!this.isDisposed() && this.built.shapes.size) this.fallBackFromShapes(fps);
+      }) ?? null;
+    }
+    this.watch?.touch();
+  }
+
+  private fallBackFromShapes(fps: number): void {
+    slowPage = true;
+    this.shapeActive = false;
+    this.watch?.stop();
+    this.watch = null;
+    const { shapes, ghosts } = this.built;
+    for (const [id, shape] of shapes) {
+      shape.el.remove();
+      for (const side of ['source', 'target'] as const) {
+        const ghost = ghosts.get(`${id}:${side}`);
+        if (ghost) setShown(ghost, true);
+      }
+    }
+    shapes.clear();
+    this.prepDiagnostics.push({
+      code: 'shape/fallback',
+      severity: 'info',
+      message: `playback ran at ${Math.round(fps)} fps; switched to stretch-and-crossfade`,
+      detail: { fps: Math.round(fps) },
+    });
+    this.render(this.progress);
   }
 
   private diagnosticsSoFar(): MorphDiagnostic[] {
@@ -353,7 +438,8 @@ class Morph<Opts> implements MathMorph {
     this.layers.target.style.opacity = String(frame.targetLayerOpacity);
     if (!layer) return;
     (layer.root as HTMLElement | SVGElement).style.removeProperty('visibility');
-    this.placeAll(plan, layer, ghosts, frame);
+    this.placeAll(plan, layer, ghosts, this.built.shapes, frame);
+    if (this.built.shapes.size && (this.options.shapes ?? 'auto') === 'auto') this.watchFrameRate();
   }
 
   async refresh(): Promise<MorphPlan> {
@@ -422,6 +508,8 @@ class Morph<Opts> implements MathMorph {
     this._state = 'disposed';
     this.refreshGeneration++;
     this.lifetime.abort(new TexMorphLifecycleError('disposed'));
+    this.watch?.stop();
+    this.watch = null;
     this.settled = settle;
     this.detach(this.built);
     this.stage.style.minHeight = this.initialMinHeight;
@@ -435,6 +523,12 @@ class Morph<Opts> implements MathMorph {
     this.stage.remove();
   }
 
+}
+
+function setShown(el: Element, shown: boolean): void {
+  const style = (el as HTMLElement | SVGElement).style;
+  if (shown) style.removeProperty('display');
+  else style.display = 'none';
 }
 
 function sameRenderer(rendered: RenderedFormula, renderer: FormulaRenderer<never> | FormulaRenderer<unknown>): boolean {
@@ -454,6 +548,17 @@ export async function createMorphWith<Opts>(
     throw new MorphPrepareError('Intl.Segmenter is required', [{ code: 'env/no-segmenter', severity: 'error', message: 'Intl.Segmenter is required' }]);
   }
   await abortable(renderer.ready?.(signal), signal);
+  const extra: MorphDiagnostic[] = [];
+  let shapesLoaded = false;
+  if ((options.shapes ?? 'auto') !== 'off' && renderer.loadShapes && renderer.createShapeGhost) {
+    try {
+      await abortable(renderer.loadShapes(signal), signal);
+      shapesLoaded = true;
+    } catch (error) {
+      throwIfAborted(signal);
+      extra.push({ code: 'shape/unavailable', severity: 'warn', message: `outline morphing unavailable: ${error instanceof Error ? error.message : String(error)}` });
+    }
+  }
 
   const stage = document.createElement('div');
   stage.className = 'texmorph-stage';
@@ -472,7 +577,6 @@ export async function createMorphWith<Opts>(
   if (anchor?.isConnected && host.contains(anchor)) anchor.before(stage);
   else host.append(stage);
 
-  const extra: MorphDiagnostic[] = [];
   const created: Element[] = [];
   const moved: Element[] = [];
 
@@ -534,7 +638,7 @@ export async function createMorphWith<Opts>(
       if (!side.failed) side.rendered = checkLayout(renderer.resnapshot(side.rendered), stage);
     }
 
-    const morph = new Morph(renderer, stage, layers, { source, target }, options, extra);
+    const morph = new Morph(renderer, stage, layers, { source, target }, options, extra, shapesLoaded);
     morph.init();
     stage.style.visibility = 'visible';
     return morph;

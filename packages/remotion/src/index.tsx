@@ -8,6 +8,7 @@ export interface TexMorphProps {
   renderer: FormulaRenderer;
   durationInFrames: number;
   startFrame?: number;
+  /** `shapes` defaults to `'always'`: frames are rendered offline, so the frame-rate fallback must not apply. */
   options?: Omit<MathMorphOptions, 'signal'>;
   prepareTimeoutMs?: number;
   onReady?: (morph: MathMorph) => void;
@@ -72,7 +73,7 @@ export function TexMorph(props: TexMorphProps): ReactElement {
         continueRender(handle);
       }
     };
-    createMorphWith(renderer, el, from, to, { ...options, signal: controller.signal }).then(
+    createMorphWith(renderer, el, from, to, { shapes: 'always', ...options, signal: controller.signal }).then(
       (m) => {
         clearTimeout(timer);
         if (controller.signal.aborted) {

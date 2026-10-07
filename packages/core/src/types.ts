@@ -151,6 +151,8 @@ export interface GhostFrame {
   sy: number;
   opacity: number;
   color?: RGBA;
+  /** Eased progress of a matched track whose glyphs differ; may leave [0, 1] with overshooting easings. */
+  mix?: number;
 }
 
 export interface FrameState {
@@ -182,6 +184,8 @@ export const DIAGNOSTIC_CODES = [
   'fallback/crossfade',
   'compat/legacy-deviation',
   'easing/unknown',
+  'shape/unavailable',
+  'shape/fallback',
 ] as const;
 
 export type DiagnosticCode = (typeof DIAGNOSTIC_CODES)[number];

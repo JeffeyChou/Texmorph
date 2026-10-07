@@ -15,7 +15,7 @@ All DOM measurement happens here. If something goes wrong, see [Errors and diagn
 
 ## 2. Render
 
-`morph.render(t)` samples the plan at progress `t ∈ [0, 1]` and writes only position, `transform`, `opacity` and `color` to lightweight copies of the symbols ("ghosts"). It never reads layout, so:
+`morph.render(t)` samples the plan at progress `t ∈ [0, 1]` and writes only position, `transform`, `opacity`, `color` and, for [outline morphs](#outline-morphing), path data to lightweight copies of the symbols ("ghosts"). It never reads layout, so:
 
 - any `t` can be rendered at any time, in any order;
 - rendering the same `t` twice produces identical pixels;
@@ -32,6 +32,25 @@ During a morph:
 | Unmatched decorations | The source formula fades out underneath while the target fades in. |
 
 At exactly `t = 0` and `t = 1` the real formulas are displayed instead of ghosts, so both ends are pixel-identical to a plain rendering.
+
+### Outline morphing
+
+With MathJax, a matched glyph whose shape changes is drawn as one outline that morphs from the source glyph into the target glyph, instead of two crossfading copies stretched to each other's size. Delimiters that grow around a fraction, radicals that lengthen and operators that switch between text and display size keep their stroke weight throughout. Explicitly mapped different glyphs (`morphMap` pairing `∑` with `∫`) melt into each other.
+
+<ClientOnly>
+  <MorphDemo :steps="['(x+y)', '\\left(\\frac{x}{y}\\right)', '\\left(\\frac{\\frac{x}{y}}{z}\\right)']" :renderers="['mathjax']" :duration="1200" />
+</ClientOnly>
+
+```ts
+const morph = await createMorph(container, from, to, {
+  shapes: 'auto',   // default; 'always' for video export, 'off' to stretch and crossfade
+  minFps: 50,       // 'auto' only
+});
+```
+
+With `'auto'`, the driver watches the display frame rate while the morph plays. If it stays below `minFps`, the morph switches to stretch-and-crossfade on the spot, reports a `shape/fallback` diagnostic, and later `'auto'` morphs on the page start without outline morphing. The [Remotion component](/integrations/remotion) uses `'always'`, since its frames are rendered offline.
+
+Outline morphing loads [flubber](https://github.com/veltman/flubber) (about 20 KB gzipped) the first time it is needed. KaTeX draws glyphs with fonts rather than paths, so it always stretches and crossfades.
 
 ## 3. Dispose
 

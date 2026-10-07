@@ -39,6 +39,7 @@ interface MathMorph {
   readonly diagnostics: readonly MorphDiagnostic[];
   readonly state: 'ready' | 'refreshing' | 'disposed';
   readonly target: RenderedFormula;
+  readonly shapes: boolean;
   render(progress: number): void;
   refresh(): Promise<MorphPlan>;
   dispose(options?: { settle?: 'source' | 'target' }): void;
@@ -54,6 +55,7 @@ interface MathMorph {
 | `plan` | The current plan (replaced by `refresh`). |
 | `diagnostics` | Diagnostics from preparation and planning. |
 | `target` | The target `RenderedFormula`, reusable as the next morph's `from`. Throws `TexMorphLifecycleError` after `dispose({ settle: 'source' })`. |
+| `shapes` | Whether outlines are being morphed right now ([outline morphing](/guide/how-it-works#outline-morphing)). False when no glyph changes shape, on renderers without outlines, and after a frame-rate fallback. |
 
 ## MathMorphOptions
 
@@ -64,6 +66,8 @@ interface MathMorphOptions<Opts = unknown> extends Omit<PlanOptions, 'origins'> 
   signal?: AbortSignal;
   rendererOptions?: Opts;
   progressMap?: (t: number) => number;
+  shapes?: 'auto' | 'always' | 'off';
+  minFps?: number;
 }
 ```
 
@@ -79,6 +83,8 @@ interface MathMorphOptions<Opts = unknown> extends Omit<PlanOptions, 'origins'> 
 | `signal` | none | Cancels preparation (and waiting for fonts). |
 | `rendererOptions` | none | Passed to the renderer for both formulas. |
 | `progressMap` | none | Applied to `progress` before sampling; use for custom easing functions. |
+| `shapes` | `'auto'` | [Outline morphing](/guide/how-it-works#outline-morphing) for matched glyphs whose shapes differ. `'auto'` falls back to stretch-and-crossfade when playback drops below `minFps`; `'always'` never falls back (use it for video export); `'off'` disables it. |
+| `minFps` | `50` | Frame rate below which `shapes: 'auto'` falls back. |
 
 ## FormulaInput
 
@@ -123,6 +129,19 @@ interface FormulaRenderer<Opts = unknown> {
   createGhostLayer(stage: HTMLElement, bounds: Box): GhostLayer;
   createGhost(token: MathToken, rendered: RenderedFormula): Element;
   stylesheet?(): CSSStyleSheet | string;
+  loadShapes?(signal?: AbortSignal): Promise<void>;
+  createShapeGhost?(source: Element, target: Element, track: Track): ShapeGhost | null;
+  watchFrameRate?(minFps: number, onSlow: (fps: number) => void): FrameRateWatch;
+}
+
+interface FrameRateWatch {
+  touch(): void;
+  stop(): void;
+}
+
+interface ShapeGhost {
+  readonly el: Element;
+  draw(mix: number): void;
 }
 
 interface GhostLayer {

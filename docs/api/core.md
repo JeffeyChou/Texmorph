@@ -45,6 +45,7 @@ interface GhostFrame {
   sx: number; sy: number;   // scale relative to the ghost's own size
   opacity: number;
   color?: RGBA;
+  mix?: number;             // eased progress of a matched pair whose glyphs differ
 }
 ```
 

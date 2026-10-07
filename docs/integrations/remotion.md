@@ -43,7 +43,7 @@ The same transition, scrubbed here instead of by Remotion's frame counter:
 | `from`, `to` | `{ latex, displayMode? }` |
 | `durationInFrames` | Length of the morph in frames. |
 | `startFrame` | First frame of the morph (default `0`). |
-| `options` | Morph options such as `easing`, `morphMap`, `arc` (see [`MathMorphOptions`](/api/dom#mathmorphoptions)). |
+| `options` | Morph options such as `easing`, `morphMap`, `arc` (see [`MathMorphOptions`](/api/dom#mathmorphoptions)). `shapes` defaults to `'always'`, so outline morphing never falls back during an offline render. |
 | `prepareTimeoutMs` | Bound on preparation (default 10 000). |
 | `onReady` | Called with the `MathMorph` once it is prepared. |
 | `className`, `style` | Applied to the container element. |

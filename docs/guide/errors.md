@@ -43,6 +43,8 @@ for (const d of morph.diagnostics) console.log(d.severity, d.code, d.message);
 | `render/adopt-mismatch`, `render/reuse-mismatch` | warn | An input could not be reused and was re-rendered. |
 | `env/no-segmenter` | error | `Intl.Segmenter` is missing. |
 | `fallback/crossfade` | warn | The morph uses a whole-formula crossfade. |
+| `shape/unavailable` | warn | Outline morphing could not load; changed glyphs stretch and crossfade. |
+| `shape/fallback` | info | Playback fell below `minFps` with `shapes: 'auto'`; the morph switched to stretch-and-crossfade. `detail.fps` is the measured rate. |
 
 `layout/fonts-not-ready`, `easing/unknown` and `compat/legacy-deviation` are reserved for integrations and are not emitted by the texmorph packages. The full list is exported at runtime as `DIAGNOSTIC_CODES` from `@texmorph/core`.
 

@@ -72,7 +72,10 @@ function matchedFrames(track: Track, tau: number, e: number, out: GhostFrame[]):
   if (track.appearance === 'same') {
     out.push(frame('source', 1));
   } else {
-    out.push(frame('source', clamp(1 - e, 0, 1)), frame('target', clamp(e, 0, 1)));
+    const source = frame('source', clamp(1 - e, 0, 1));
+    const target = frame('target', clamp(e, 0, 1));
+    source.mix = target.mix = e;
+    out.push(source, target);
   }
 }
 

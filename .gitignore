@@ -22,6 +22,13 @@ docs/.vitepress/cache/
 /types/*
 !/types/katex.d.ts
 /packages/*/test/
+# Node unit tests that run on main without fixtures or a browser.
+!/packages/core/test/
+/packages/core/test/easing.test.ts
+/packages/core/test/legacy*.ts
+!/packages/mathjax/test/
+/packages/mathjax/test/*
+!/packages/mathjax/test/frame-rate.test.ts
 /packages/*/etc/
 /packages/*/api-extractor.json
 /docs/adr/
