@@ -1,6 +1,6 @@
 {
   "name": "@texmorph/element",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "<tex-morph> Web Component for texmorph.",
   "license": "MIT",
   "author": "Jiefeng Zhou",

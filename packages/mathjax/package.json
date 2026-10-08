@@ -1,6 +1,6 @@
 {
   "name": "@texmorph/mathjax",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "MathJax (SVG) renderer for texmorph and createMorph().",
   "license": "MIT",
   "author": "Jiefeng Zhou",

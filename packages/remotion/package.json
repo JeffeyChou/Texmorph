@@ -1,6 +1,6 @@
 {
   "name": "@texmorph/remotion",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Remotion component for texmorph: frame-accurate formula morphs.",
   "license": "MIT",
   "author": "Jiefeng Zhou",

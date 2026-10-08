@@ -1,6 +1,6 @@
 {
   "name": "@texmorph/gsap",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "GSAP timeline bridge for texmorph morphs.",
   "license": "MIT",
   "author": "Jiefeng Zhou",

@@ -1,6 +1,6 @@
 {
   "name": "@texmorph/dom",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Renderer-agnostic DOM driver for texmorph: stage, ghost layers and lifecycle.",
   "license": "MIT",
   "author": "Jiefeng Zhou",

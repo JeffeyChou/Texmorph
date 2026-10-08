@@ -1,6 +1,6 @@
 {
   "name": "@texmorph/katex",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "KaTeX renderer for texmorph and createMorph().",
   "license": "MIT",
   "author": "Jiefeng Zhou",

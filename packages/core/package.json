@@ -1,6 +1,6 @@
 {
   "name": "@texmorph/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Pure TypeScript formula-morph planning: tokens, matching, plans and seekable sampling.",
   "license": "MIT",
   "author": "Jiefeng Zhou",
