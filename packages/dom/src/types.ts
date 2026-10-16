@@ -29,7 +29,7 @@ export interface FormulaRenderer<Opts = unknown> {
   readonly name: string;
   readonly version: string;
   ready?(signal?: AbortSignal): Promise<void>;
-  render(container: HTMLElement, state: LatexState, opts: Opts | undefined, signal?: AbortSignal): Promise<RenderedFormula>;
+  render(container: HTMLElement, state: LatexState, opts?: Opts, signal?: AbortSignal): Promise<RenderedFormula>;
   adopt?(el: Element, signal?: AbortSignal): Promise<RenderedFormula | null>;
   resnapshot(rendered: RenderedFormula): RenderedFormula;
   /** Hides the token elements of a rendered formula; the returned function restores them. */
@@ -58,8 +58,9 @@ export interface FrameRateWatch {
 }
 
 /**
- * `'auto'` morphs outlines and switches to stretch-and-crossfade once playback falls below
- * `minFps`; `'always'` never switches (use it for video export); `'off'` never morphs outlines.
+ * `'always'` (default) morphs outlines on every frame, so a frame depends only on its progress;
+ * `'auto'` switches to stretch-and-crossfade once live playback stays below `minFps` (opt in for
+ * pages on slow devices; frames then depend on the measured frame rate); `'off'` never morphs outlines.
  */
 export type ShapeMode = 'auto' | 'always' | 'off';
 
@@ -71,7 +72,7 @@ export interface MathMorphOptions<Opts = unknown> extends Omit<PlanOptions, 'ori
   signal?: AbortSignal;
   rendererOptions?: Opts;
   progressMap?: (t: number) => number;
-  /** Outline morphing for matched glyphs whose shapes differ, on renderers that support it. Default `'auto'`. */
+  /** Outline morphing for matched glyphs whose shapes differ, on renderers that support it. Default `'always'`. */
   shapes?: ShapeMode;
   /** Frame rate below which `shapes: 'auto'` falls back. Default 50. */
   minFps?: number;

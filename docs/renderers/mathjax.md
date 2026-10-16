@@ -51,6 +51,19 @@ const morph = await createMorph(container, from, to, { renderer });
 
 `createMorph(..., { mathjax: { ... } })` creates a renderer with these options. Without `renderer` or `mathjax`, one shared default renderer is used. Per-render option: `rendererOptions: { containerWidth }` (CSS px used for percentage widths).
 
+## Static formulas
+
+To show a formula without morphing it, render it with `renderFormula`. It renders the same way a morph does, so the result can later start a morph ([Chaining steps](/guide/chaining-steps)).
+
+```ts
+import { mathjaxRenderer, renderFormula } from '@texmorph/mathjax';
+
+const renderer = mathjaxRenderer();
+const shown = await renderFormula(renderer, container, { latex: String.raw`e^{i\pi} + 1 = 0` });
+```
+
+`renderFormula` waits for `renderer.ready()` and appends a new element to `container`. Reuse one renderer for many formulas.
+
 ## Fonts
 
 The base font tables load with the renderer. About 40 additional ranges (accented Latin, Greek variants, arrows, …) are imported lazily, each as its own chunk, the first time a formula needs one. `loadFont` is page-global: the most recently created renderer that sets it wins.
