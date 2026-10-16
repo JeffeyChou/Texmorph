@@ -1,5 +1,15 @@
 # @texmorph/remotion
 
+## 0.1.1
+
+### Patch Changes
+
+- 1f65737: `shapes` now defaults to `'always'`, so `render(t)` depends on `t` alone in every host: live playback, scrubbing and offline frame-by-frame rendering draw the same frame for the same progress. `'auto'`, which measures the display frame rate and falls back to stretch-and-crossfade on slow devices, is now opt-in for live pages. `<TexMorph>` no longer overrides the default.
+- Updated dependencies [1f65737]
+- Updated dependencies [1f65737]
+- Updated dependencies [1f65737]
+  - @texmorph/dom@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes

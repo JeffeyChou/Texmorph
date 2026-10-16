@@ -1,5 +1,16 @@
 # @texmorph/dom
 
+## 0.2.0
+
+### Minor Changes
+
+- 1f65737: `shapes` now defaults to `'always'`, so `render(t)` depends on `t` alone in every host: live playback, scrubbing and offline frame-by-frame rendering draw the same frame for the same progress. `'auto'`, which measures the display frame rate and falls back to stretch-and-crossfade on slow devices, is now opt-in for live pages. `<TexMorph>` no longer overrides the default.
+
+### Patch Changes
+
+- 1f65737: `FormulaRenderer.render()` takes its options as an optional parameter, so callers no longer pass `undefined` explicitly. The MathJax docs describe static rendering with `renderFormula`.
+- 1f65737: The morph stage no longer sets `visibility: visible` once it is ready; it inherits, so a morph inside a hidden ancestor (an inactive slide or scene) stays hidden.
+
 ## 0.1.0
 
 ### Minor Changes
