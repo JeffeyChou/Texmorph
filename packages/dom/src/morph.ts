@@ -10,7 +10,7 @@ import {
   type Point,
   type Track,
 } from '@texmorph/core';
-import type { FormulaInput, FormulaRenderer, FrameRateWatch, GhostLayer, LatexState, MathMorph, MathMorphOptions, RenderedFormula, ShapeGhost } from './types.ts';
+import type { FormulaInput, FormulaRenderer, FrameRateWatch, GhostLayer, LatexState, MathMorph, MathMorphOptions, RenderedFormula, ShapeGhost, ShapeMode } from './types.ts';
 
 export class TexMorphLifecycleError extends Error {
   override name = 'TexMorphLifecycleError';
@@ -28,6 +28,8 @@ export class MorphPrepareError extends Error {
 
 export const DEFAULT_DURATION = 800;
 const DEFAULT_MIN_FPS = 50;
+/** `'always'`: a frame depends only on its progress, never on the measured frame rate. */
+const DEFAULT_SHAPES: ShapeMode = 'always';
 
 /** Set once `shapes: 'auto'` has fallen back on this page; later auto morphs start without outline morphing. */
 let slowPage = false;
@@ -176,7 +178,7 @@ class Morph<Opts> implements MathMorph {
     shapesLoaded: boolean,
   ) {
     this.duration = options.duration ?? DEFAULT_DURATION;
-    const mode = options.shapes ?? 'auto';
+    const mode = options.shapes ?? DEFAULT_SHAPES;
     this.shapeActive = shapesLoaded && (mode === 'always' || (mode === 'auto' && !slowPage));
     this.prepDiagnostics.push(...extra);
     this.initialMinHeight = stage.style.minHeight;
@@ -439,7 +441,7 @@ class Morph<Opts> implements MathMorph {
     if (!layer) return;
     (layer.root as HTMLElement | SVGElement).style.removeProperty('visibility');
     this.placeAll(plan, layer, ghosts, this.built.shapes, frame);
-    if (this.built.shapes.size && (this.options.shapes ?? 'auto') === 'auto') this.watchFrameRate();
+    if (this.built.shapes.size && (this.options.shapes ?? DEFAULT_SHAPES) === 'auto') this.watchFrameRate();
   }
 
   async refresh(): Promise<MorphPlan> {
@@ -550,7 +552,7 @@ export async function createMorphWith<Opts>(
   await abortable(renderer.ready?.(signal), signal);
   const extra: MorphDiagnostic[] = [];
   let shapesLoaded = false;
-  if ((options.shapes ?? 'auto') !== 'off' && renderer.loadShapes && renderer.createShapeGhost) {
+  if ((options.shapes ?? DEFAULT_SHAPES) !== 'off' && renderer.loadShapes && renderer.createShapeGhost) {
     try {
       await abortable(renderer.loadShapes(signal), signal);
       shapesLoaded = true;
