@@ -640,7 +640,8 @@ export async function createMorphWith<Opts>(
 
     const morph = new Morph(renderer, stage, layers, { source, target }, options, extra, shapesLoaded);
     morph.init();
-    stage.style.visibility = 'visible';
+    // Inherit rather than force 'visible', so a hidden ancestor keeps the morph hidden.
+    stage.style.removeProperty('visibility');
     return morph;
   } catch (error) {
     cleanup();
