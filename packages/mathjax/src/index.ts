@@ -10,7 +10,9 @@ import {
   type RenderedFormula,
 } from '@texmorph/dom';
 import { ATTR } from './annotate.ts';
-import { createEngine, loadFontRange, MATHJAX_VERSION, setFontLoader, type Engine } from './engine.ts';
+import { createEngine, loadFontRange, MATHJAX_VERSION, registerFont, type Engine } from './engine.ts';
+import type { MathJaxFont } from './font.ts';
+import { newcm } from './fonts/newcm.ts';
 import { watchFrameRate } from './frame-rate.ts';
 import { createShapeGhost, loadShapes } from './shape.ts';
 import { alignToPixels, formulaSvg, hrefOf, registries, safeMeasure, setHref, SVGNS, XLINK } from './snapshot.ts';
@@ -20,9 +22,19 @@ export interface MathJaxRendererOptions {
   packages?: readonly string[];
   macros?: Readonly<Record<string, string | [string, number]>>;
   /**
-   * Loads one dynamic range of the newcm font, e.g. `"latin-b"`. The default imports
-   * `@mathjax/mathjax-newcm-font/js/svg/dynamic/<range>.js` lazily. The loader is page-global,
-   * because MathJax keeps font data in shared module state.
+   * Math font, imported from `@texmorph/mathjax/fonts/<name>` (`newcm`, `stix2`, `termes`, `pagella`).
+   * Default: newcm (New Computer Modern).
+   */
+  font?: MathJaxFont;
+  /**
+   * Font of `\text{}`: `'math'` (default) draws it with the math font; `'inherit'` uses the font of
+   * the element the formula is rendered into, so text in formulas matches the surrounding text.
+   */
+  textFont?: 'math' | 'inherit';
+  /**
+   * Loads one dynamic range of the font, e.g. `"latin-b"`. The default imports
+   * `@mathjax/mathjax-<font>-font/js/svg/dynamic/<range>.js` lazily. The loader is page-global per
+   * font, because MathJax keeps font data in shared module state.
    */
   loadFont?: (range: string) => Promise<unknown>;
   /** Dynamic font ranges to load in `ready()`. */
@@ -105,6 +117,13 @@ function matrixAttr(m: DOMMatrix): string {
   return `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`;
 }
 
+/** Loads the page faces of `family` that inherited `\text{}` may use, so MathJax measures the real font. */
+async function loadTextFaces(family: string, sample: string): Promise<void> {
+  if (typeof document === 'undefined' || !document.fonts) return;
+  const faces = ['', 'bold ', 'italic ', 'italic bold '].map((style) => `${style}16px ${family}`);
+  await Promise.all(faces.map((face) => document.fonts.load(face, sample).catch(() => [])));
+}
+
 function isAdoptable(el: Element, marker: string): el is HTMLElement {
   if (!(el instanceof HTMLElement) || el.getAttribute(MARKER) !== marker) return false;
   const svg = formulaSvg(el);
@@ -113,9 +132,13 @@ function isAdoptable(el: Element, marker: string): el is HTMLElement {
 }
 
 export function mathjaxRenderer(options: MathJaxRendererOptions = {}): FormulaRenderer<SafeMathJaxOptions> {
-  setFontLoader(options.loadFont);
-  const engine: Engine = createEngine({ packages: options.packages, macros: options.macros });
-  const version = MATHJAX_VERSION;
+  const font = options.font ?? newcm;
+  registerFont(font, options.loadFont);
+  const inheritText = options.textFont === 'inherit';
+  const engine: Engine = createEngine({ packages: options.packages, macros: options.macros, font, inheritTextFont: inheritText });
+  // Another font (or text font) gives other glyphs, so formulas rendered with it are not reused as-is.
+  const variant = [font.name === 'newcm' ? '' : font.name, inheritText ? 'text' : ''].filter(Boolean).join('.');
+  const version = variant ? `${MATHJAX_VERSION}+${variant}` : MATHJAX_VERSION;
   const info = { name: 'mathjax', version };
   const marker = `mathjax@${version}`;
   const preload = [...(options.preloadFonts ?? [])];
@@ -130,14 +153,16 @@ export function mathjaxRenderer(options: MathJaxRendererOptions = {}): FormulaRe
     version,
     async ready(signal) {
       throwIfAborted(signal);
-      await abortable(Promise.all(preload.map(loadFontRange)), signal);
+      await abortable(Promise.all(preload.map((range) => loadFontRange(font, range))), signal);
       if (typeof document !== 'undefined' && document.fonts) await abortable(document.fonts.ready, signal);
     },
     async render(container, state, opts, signal) {
       throwIfAborted(signal);
       const { em, ex } = metrics(container);
+      const family = inheritText ? getComputedStyle(container).fontFamily : '';
+      if (family) await abortable(loadTextFaces(family, state.latex), signal);
       const node = await abortable(
-        engine.convert(state.latex, { display: state.displayMode ?? false, em, ex, containerWidth: opts?.containerWidth ?? 80 * ex }),
+        engine.convert(state.latex, { display: state.displayMode ?? false, em, ex, containerWidth: opts?.containerWidth ?? 80 * ex, family }),
         signal,
       );
       injectStylesheet(container, engine.styleSheet());
@@ -237,6 +262,13 @@ export function mathjaxRenderer(options: MathJaxRendererOptions = {}): FormulaRe
           clone.textContent = entry.text;
           clone.setAttribute('x', String(u.startX ?? 0));
         }
+        if (clone instanceof SVGTextElement && !u.el.hasAttribute('font-family')) {
+          // Inherited \text{} takes its font from an ancestor that the ghost does not copy.
+          const cs = getComputedStyle(u.el);
+          clone.setAttribute('font-family', cs.fontFamily);
+          clone.setAttribute('font-weight', cs.fontWeight);
+          clone.setAttribute('font-style', cs.fontStyle);
+        }
         wrap.append(clone);
         body.append(wrap);
       }
@@ -283,5 +315,6 @@ export async function createMorph(
   return createMorphWith(renderer, host, from, to, rest);
 }
 
+export type { MathJaxFont } from './font.ts';
 export { MorphPrepareError, renderFormula, TexMorphLifecycleError } from '@texmorph/dom';
 export type { FormulaInput, FormulaRenderer, GhostLayer, LatexState, MathMorph, MathMorphOptions, RenderedFormula, ShapeGhost, ShapeMode, FrameRateWatch } from '@texmorph/dom';

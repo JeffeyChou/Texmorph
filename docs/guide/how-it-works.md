@@ -43,12 +43,14 @@ With MathJax, a matched glyph whose shape changes is drawn as one outline that m
 
 ```ts
 const morph = await createMorph(container, from, to, {
-  shapes: 'auto',   // default; 'always' for video export, 'off' to stretch and crossfade
+  shapes: 'always', // default; 'auto' to fall back on slow devices, 'off' to stretch and crossfade
   minFps: 50,       // 'auto' only
 });
 ```
 
-With `'auto'`, the driver watches the display frame rate while the morph plays. If it stays below `minFps`, the morph switches to stretch-and-crossfade on the spot, reports a `shape/fallback` diagnostic, and later `'auto'` morphs on the page start without outline morphing. The [Remotion component](/integrations/remotion) uses `'always'`, since its frames are rendered offline.
+The default `'always'` keeps `render(t)` a function of `t` alone: the same progress draws the same frame, whether the morph plays live, is scrubbed, or is rendered offline frame by frame (video export, [Remotion](/integrations/remotion)).
+
+`'auto'` is opt-in for live pages that must stay smooth on slow devices. The driver watches the display frame rate while the morph plays. If it stays below `minFps`, the morph switches to stretch-and-crossfade on the spot, reports a `shape/fallback` diagnostic, and later `'auto'` morphs on the page start without outline morphing. A frame then depends on how fast earlier frames were drawn, so do not use `'auto'` for offline rendering.
 
 Outline morphing loads [flubber](https://github.com/veltman/flubber) (about 20 KB gzipped) the first time it is needed. KaTeX draws glyphs with fonts rather than paths, so it always stretches and crossfades.
 

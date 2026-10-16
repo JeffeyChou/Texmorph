@@ -24,6 +24,8 @@ morph.render(0.5);
 
 Requires `@mathjax/src` `^4.1.3`. Font ranges load lazily as formulas need them.
 
+Other math fonts (`stix2`, `termes`, `pagella`) come from `@texmorph/mathjax/fonts/<name>` with their `@mathjax/mathjax-<name>-font` package: `mathjaxRenderer({ font: stix2 })`. `textFont: 'inherit'` draws `\text{}` in the page font.
+
 ## Documentation
 
 - [MathJax renderer](https://jeffeychou.github.io/Texmorph/renderers/mathjax)

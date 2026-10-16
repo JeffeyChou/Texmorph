@@ -83,7 +83,7 @@ interface MathMorphOptions<Opts = unknown> extends Omit<PlanOptions, 'origins'> 
 | `signal` | none | Cancels preparation (and waiting for fonts). |
 | `rendererOptions` | none | Passed to the renderer for both formulas. |
 | `progressMap` | none | Applied to `progress` before sampling; use for custom easing functions. |
-| `shapes` | `'auto'` | [Outline morphing](/guide/how-it-works#outline-morphing) for matched glyphs whose shapes differ. `'auto'` falls back to stretch-and-crossfade when playback drops below `minFps`; `'always'` never falls back (use it for video export); `'off'` disables it. |
+| `shapes` | `'always'` | [Outline morphing](/guide/how-it-works#outline-morphing) for matched glyphs whose shapes differ. `'always'` keeps every frame a function of progress alone; `'auto'` (opt-in, live pages only) falls back to stretch-and-crossfade when playback drops below `minFps`; `'off'` disables it. |
 | `minFps` | `50` | Frame rate below which `shapes: 'auto'` falls back. |
 
 ## FormulaInput
